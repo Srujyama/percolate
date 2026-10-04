@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+<dictionary title="Percolate Terminology">
+    <suite name="Percolate Suite" code="PrcL" description="Keep your Mac awake.">
+        <command name="toggle" code="PrcLTogl" description="Toggle Percolate. Returns true if it is now active.">
+            <cocoa class="PercolateToggleCommand"/>
+            <result type="boolean"/>
+        </command>
+        <command name="turn on" code="PrcLTOnn" description="Keep the Mac awake.">
+            <cocoa class="PercolateTurnOnCommand"/>
+            <parameter name="for" code="Mins" type="integer" optional="yes"
+                       description="Minutes to stay awake (0 = indefinitely). Defaults to the duration selected in the menu.">
+                <cocoa key="minutes"/>
+            </parameter>
+            <result type="boolean"/>
+        </command>
+        <command name="turn off" code="PrcLTOff" description="Let the Mac sleep normally again.">
+            <cocoa class="PercolateTurnOffCommand"/>
+            <result type="boolean"/>
+        </command>
+        <command name="is active" code="PrcLIsAc" description="Whether Percolate is currently keeping the Mac awake.">
+            <cocoa class="PercolateIsActiveCommand"/>
+            <result type="boolean"/>
+        </command>
+    </suite>
+</dictionary>
