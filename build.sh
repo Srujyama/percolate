@@ -6,5 +6,6 @@ xcodegen generate --quiet
 xcodebuild -project Percolate.xcodeproj -scheme Percolate -configuration "${CONFIG:-Release}" \
   -destination "generic/platform=macOS" -derivedDataPath build/DerivedData CODE_SIGN_IDENTITY=- build -quiet
 rm -rf build/Percolate.app
-cp -R "build/DerivedData/Build/Products/${CONFIG:-Release}/Percolate.app" build/
+# Move rather than copy so only one Percolate.app exists for Launch Services to find.
+mv "build/DerivedData/Build/Products/${CONFIG:-Release}/Percolate.app" build/
 echo "Built $(pwd)/build/Percolate.app"

@@ -14,6 +14,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
+        // Only one Percolate at a time: a second copy would add a second cup and its own assertion.
+        let me = NSRunningApplication.current
+        if NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "")
+            .contains(where: { $0 != me }) {
+            NSLog("Percolate: another instance is already running; quitting")
+            exit(0)
+        }
         AppDelegate.shared = self
         Prefs.registerDefaults()
         NSAppleEventManager.shared().setEventHandler(
