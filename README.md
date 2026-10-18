@@ -8,6 +8,12 @@ of Swift you can read in an afternoon.
 
 Click the coffee cup to toggle. Right-click (or ⌃-click) to pick how long.
 
+<p align="center">
+  <img src="docs/menu.png" alt="Percolate's menu bar menu with duration options" width="320">
+  &nbsp;&nbsp;
+  <img src="docs/settings.png" alt="Percolate's Settings window" width="400">
+</p>
+
 ## Why
 
 Keeping a Mac awake is one system call. It shouldn't cost a subscription. Percolate exists so
