@@ -1,16 +1,19 @@
-# Push a tag like v1.0.0 to build Percolate.app and attach it to a GitHub Release.
+# Builds both apps on every push and pull request. Pushing a tag like v1.0.0 also publishes a
+# GitHub Release with the macOS and Windows downloads attached.
 name: Release
 
 on:
   push:
+    branches: [main]
     tags: ["v*"]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  macos:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -22,10 +25,72 @@ jobs:
         run: ditto -c -k --keepParent build/Percolate.app build/Percolate.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: Percolate
+          name: macos
           path: build/Percolate.zip
+
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build
+        run: |
+          foreach ($arch in "x64", "arm64") {
+            dotnet publish windows/Percolate -c Release -r "win-$arch" --self-contained true `
+              -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true `
+              -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o "build/windows-$arch"
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
+      - name: Smoke test (keep-awake request appears and goes away)
+        run: |
+          $exe = Resolve-Path build/windows-x64/Percolate.exe
+          New-Item -ItemType Directory -Force "$env:APPDATA/Percolate" | Out-Null
+          '{ "ShowWelcomeAtLaunch": false }' | Set-Content "$env:APPDATA/Percolate/settings.json"
+          $app = Start-Process $exe -PassThru
+          Start-Sleep 5
+          if ($app.HasExited) { throw "Percolate exited on launch (code $($app.ExitCode))" }
+
+          Start-Process $exe -ArgumentList "--on", "5" -Wait
+          Start-Sleep 2
+          $on = powercfg /requests | Out-String
+          Write-Output $on
+          if ($on -notmatch "Percolate") { throw "No keep-awake request from Percolate after --on" }
+
+          Start-Process $exe -ArgumentList "--off" -Wait
+          Start-Sleep 2
+          $off = powercfg /requests | Out-String
+          if ($off -match "Percolate") { throw "Keep-awake request still present after --off" }
+
+          Stop-Process $app
+          Write-Output "Smoke test passed"
+      - name: Zip
+        run: |
+          foreach ($arch in "x64", "arm64") {
+            Compress-Archive "build/windows-$arch/Percolate.exe" "build/Percolate-Windows-$arch.zip"
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: build/Percolate-Windows-*.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" build/Percolate.zip --title "Percolate $GITHUB_REF_NAME" --generate-notes
+        run: |
+          mv dist/Percolate.zip dist/Percolate-macOS.zip
+          gh release create "$GITHUB_REF_NAME" dist/*.zip --repo "$GITHUB_REPOSITORY" \
+            --title "Percolate $GITHUB_REF_NAME" --generate-notes
