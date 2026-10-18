@@ -1,6 +1,6 @@
 name: Percolate
 options:
-  bundleIdPrefix: io.github.percolate
+  bundleIdPrefix: io.github.srujyama
   deploymentTarget:
     macOS: "13.0"
   createIntermediateGroups: true
@@ -32,11 +32,11 @@ targets:
         OSAScriptingDefinition: Percolate.sdef
         NSHumanReadableCopyright: "MIT License"
         CFBundleURLTypes:
-          - CFBundleURLName: io.github.percolate
+          - CFBundleURLName: io.github.srujyama.Percolate
             CFBundleURLSchemes: [percolate]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: io.github.percolate.Percolate
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.srujyama.Percolate
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
         COMBINE_HIDPI_IMAGES: YES
